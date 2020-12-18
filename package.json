@@ -1,0 +1,19 @@
+{
+  "name": "rdm6300-reader",
+  "version": "1.0.0",
+  "description": "A 125KHz RFID reader",
+  "main": "run.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/13/node-rdm6300-reader.git"
+  },
+  "author": "ben",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/13/node-rdm6300-reader/issues"
+  },
+  "homepage": "https://github.com/13/node-rdm6300-reader#readme"
+}
