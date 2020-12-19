@@ -42,9 +42,9 @@ const argv = require('yargs')(process.argv.slice(2))
   }).argv
 
 // configuration
-const {tags} = require('./env')
+const {tags, readerLocation, mqttAddress} = require('./env')
 const tty = argv.port || '/dev/ttyACM0'
-const mqtt_address = argv.mqtt || 'localhost'
+//const mqttAddress = argv.mqtt || mqttAddress
 const showTimestamp = (argv.timestamp ? true : false)
 
 // verbose
@@ -73,14 +73,14 @@ const parser_sp = port.pipe(new Delimiter({ delimiter: '\x03' }))
 
 // mqtt
 const mqtt = require('mqtt')
-const client = mqtt.connect('mqtt://' + mqtt_address)
+const client = mqtt.connect('mqtt://' + mqttAddress)
 
 // keepalive
 var lastMsgDate = new Date()
 
 // start msg
 console.log(getTime() + 'node-rdm6300-reader starting ...')
-console.log(getTime() + 'tty: '+ tty + ', mqtt: ' + mqtt_address)
+console.log(getTime() + 'tty: '+ tty + ', mqtt: ' + mqttAddress)
 
 // serialport
 port.on('open', () => {
@@ -118,6 +118,12 @@ parser_sp.on('data', data =>{
 
     if (tags[data.toString()]){
       console.log(getTime() + 'Welcome ' + tags[data.toString()])
+      let data_json = new Object()
+      data_json.tag = tags[data.toString()] 
+      data_json.location = readerLocation 
+      //data_json.dt = 
+      //client.publish('rfid/' + data_json.location + '/json', JSON.stringify(data_json))
+      client.publish('rfid/json', JSON.stringify(data_json))
     } else {
       console.log(getTime() + 'Denied ' + data.toString())
     }
