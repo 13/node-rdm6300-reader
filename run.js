@@ -42,6 +42,7 @@ const argv = require('yargs')(process.argv.slice(2))
   }).argv
 
 // configuration
+const {tags} = require('./env')
 const tty = argv.port || '/dev/ttyACM0'
 const mqtt_address = argv.mqtt || 'localhost'
 const showTimestamp = (argv.timestamp ? true : false)
@@ -66,9 +67,9 @@ fs.access(tty, (err) => {
 
 // serial
 const SerialPort = require('serialport')
-const Readline = require('@serialport/parser-readline')
-var port = new SerialPort(tty, { baudRate: 9600 })
-var parser_sp = port.pipe(new Readline({ delimiter: '\n' }))
+const Delimiter = require('@serialport/parser-delimiter')
+const port = new SerialPort(tty, { baudRate: 9600, highWaterMark: 1 })
+const parser_sp = port.pipe(new Delimiter({ delimiter: '\x03' }))
 
 // mqtt
 const mqtt = require('mqtt')
@@ -89,14 +90,42 @@ port.on('open', () => {
 
 port.on('close', () => {
   console.log(getTime() + 'serial port closed')
-  //reConnect()
-  process.exit(1)
+})
+
+port.on('pause', () => {
+  INFO(getTime() + 'serial port paused 10s')
+  setTimeout(function(){
+    INFO(getTime() + 'serial port resumed')
+    port.flush()
+    port.resume()
+  }, 10000)
 })
 
 port.on('error', (err) => {
   console.log(getTime() + 'serial port error')
   console.log('error', err)
   //reConnect()
+})
+
+parser_sp.on('data', data =>{
+  DEBUG(getTime() + 'data: ' + JSON.stringify(data))
+  let buf = data
+  data = data.toString("utf-8")
+  DEBUG(getTime() + 'data utf8: ' + JSON.stringify(data))
+  data = data.replace(/(\r\n|\n|\r|\x02|\x03)/gm,"").trim()
+  if (buf.indexOf('\x02') == 0 && data.length == 12){
+    DEBUG(getTime() + 'data: ok')
+
+    if (tags[data.toString()]){
+      console.log(getTime() + 'Welcome ' + tags[data.toString()])
+    } else {
+      console.log(getTime() + 'Denied ' + data.toString())
+    }
+
+  } else {
+      console.log(getTime() + 'Wrong data string ' + data.toString())
+  }
+  port.pause()
 })
 
 // check for connection errors or drops and reconnect
@@ -108,15 +137,6 @@ var reConnect = function () {
     port = new SerialPort(tty, { baudRate: 9600 })
   }, 5000)
 }
-
-parser_sp.on('data', data =>{
-  console.log(getTime() + "" + data)
-  data = data.toString("utf-8")
-  console.log(getTime() + "" + data)
-  data = data.replace(/(\r\n|\n|\r)/gm,"").trim()
-  console.log(getTime() + "" + data)
-
-})
 
 function keepAlive() {
   var keepAliveDate = new Date()
