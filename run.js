@@ -115,17 +115,19 @@ parser_sp.on('data', data =>{
   data = data.replace(/(\r\n|\n|\r|\x02|\x03)/gm,"").trim()
   if (buf.indexOf('\x02') == 0 && data.length == 12){
     DEBUG(getTime() + 'data: ok')
+    let data_json = new Object()
+    //data_json.tag = tags[data.toString()] 
+    data_json.key = data.toString()
+    data_json.location = readerLocation 
 
     if (tags[data.toString()]){
       console.log(getTime() + 'Welcome ' + tags[data.toString()])
-      let data_json = new Object()
-      data_json.tag = tags[data.toString()] 
-      data_json.location = readerLocation 
-      //data_json.dt = 
       //client.publish('rfid/' + data_json.location + '/json', JSON.stringify(data_json))
+      data_json.tag = tags[data.toString()] 
       client.publish('rfid/json', JSON.stringify(data_json))
     } else {
       console.log(getTime() + 'Denied ' + data.toString())
+      client.publish('rfid/json', JSON.stringify(data_json))
     }
 
   } else {
