@@ -49,6 +49,11 @@ node run.js -p 'tty port'
             -t 'show timestamp'
             -v 'verbose'
 ```
+
+
+```sh
+node run.js -p /dev/ttySLAB1 -t -vvv -m localhost -l GDL
+```
  
 ## Roadmap
 

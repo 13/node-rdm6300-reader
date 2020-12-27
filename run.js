@@ -39,12 +39,21 @@ const argv = require('yargs')(process.argv.slice(2))
       nargs: 1,
       default: 'localhost',
       requiresArg: true
+  })
+  .option('l', {
+      alias : 'location',
+      describe: 'reader location',
+      type: 'string',
+      nargs: 1,
+      default: 'GDL',
+      requiresArg: true
   }).argv
 
 // configuration
-const {tags, readerLocation, mqttAddress} = require('./env')
+var {tags, readerLocation, mqttAddress} = require('./env')
+readerLocation = argv.location || readerLocation
 const tty = argv.port || '/dev/ttyACM0'
-//const mqttAddress = argv.mqtt || mqttAddress
+mqttAddress = argv.mqtt || mqttAddress
 const showTimestamp = (argv.timestamp ? true : false)
 
 // verbose
@@ -80,7 +89,7 @@ var lastMsgDate = new Date()
 
 // start msg
 console.log(getTime() + 'node-rdm6300-reader starting ...')
-console.log(getTime() + 'tty: '+ tty + ', mqtt: ' + mqttAddress)
+console.log(getTime() + 'tty: '+ tty + ', mqtt: ' + mqttAddress + ', location: ' + readerLocation)
 
 // serialport
 port.on('open', () => {
