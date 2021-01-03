@@ -1,0 +1,19 @@
+[Unit]
+Description=node rfid receiver
+After=docker.service
+BindsTo=docker.service
+ReloadPropagatedFrom=docker.service
+
+[Service]
+Type=simple
+User=ben
+ExecStart=/usr/bin/node /home/ben/repo/node-rdm6300-reader/run.js -p /dev/ttySLAB1 -m localhost -l HDL
+Restart=always
+RestartSec=30
+# Output to syslog
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=node-rfid1
+
+[Install]
+WantedBy=multi-user.target
